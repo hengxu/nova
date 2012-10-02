@@ -114,12 +114,18 @@ class HostState(object):
         self.free_disk_mb = 0
         self.vcpus_total = 0
         self.vcpus_used = 0
+        self.currentid = 0
+        self.currentname = ""
+        self.currentbw = 0
 
     def update_from_compute_node(self, compute):
         """Update information about a host from its compute_node info."""
         all_disk_mb = compute['local_gb'] * 1024
         all_ram_mb = compute['memory_mb']
         vcpus_total = compute['vcpus']
+        databaseid = compute['id']
+        hostname = compute['hypervisor_hostname']
+        bandwidth = compute['bandwidth']
         if FLAGS.reserved_host_disk_mb > 0:
             all_disk_mb -= FLAGS.reserved_host_disk_mb
         if FLAGS.reserved_host_memory_mb > 0:
@@ -129,15 +135,20 @@ class HostState(object):
         self.total_usable_ram_mb = all_ram_mb
         self.free_disk_mb = all_disk_mb
         self.vcpus_total = vcpus_total
+        self.currentid = databaseid
+        self.currentname = hostname
+        self.currentbw = bandwidth
 
     def consume_from_instance(self, instance):
         """Update information about a host from instance info."""
         disk_mb = (instance['root_gb'] + instance['ephemeral_gb']) * 1024
         ram_mb = instance['memory_mb']
         vcpus = instance['vcpus']
+        bandwidth = instance['bandwidth']
         self.free_ram_mb -= ram_mb
         self.free_disk_mb -= disk_mb
         self.vcpus_used += vcpus
+        self.currentbw -= bandwidth
 
     def passes_filters(self, filter_fns, filter_properties):
         """Return whether or not this host passes filters."""

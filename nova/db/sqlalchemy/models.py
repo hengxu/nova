@@ -145,6 +145,7 @@ class ComputeNode(BASE, NovaBase):
     free_disk_gb = Column(Integer)
     current_workload = Column(Integer)
     running_vms = Column(Integer)
+    bandwidth = Column(Integer, default=100)
 
     # Note(masumotok): Expected Strings example:
     #
@@ -225,6 +226,7 @@ class Instance(BASE, NovaBase):
     vcpus = Column(Integer)
     root_gb = Column(Integer)
     ephemeral_gb = Column(Integer)
+    bandwidth = Column(Integer, default=20)
 
     hostname = Column(String(255))
     host = Column(String(255))  # , ForeignKey('hosts.id'))
@@ -312,7 +314,7 @@ class InstanceTypes(BASE, NovaBase):
     rxtx_factor = Column(Float, nullable=False, default=1)
     vcpu_weight = Column(Integer, nullable=True)
     disabled = Column(Boolean, default=False)
-
+    bandwidth = Column(Integer, default=20)
     instances = relationship(Instance,
                            backref=backref('instance_type', uselist=False),
                            foreign_keys=id,

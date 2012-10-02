@@ -519,14 +519,37 @@ def _get_host_utilization(context, host, ram_mb, disk_gb):
                 current_workload=work,
                 running_vms=vms)
 
+def _get_host_utilization2(context, host, ram_mb, disk_gb, bandwidth):
+    """Compute the current utilization of a given host."""
+    instances = instance_get_all_by_host(context, host)
+    vms = len(instances)
+    free_ram_mb = ram_mb - FLAGS.reserved_host_memory_mb
+    free_disk_gb = disk_gb - (FLAGS.reserved_host_disk_mb * 1024)
+
+    work = 0
+    for instance in instances:
+        free_ram_mb -= instance.memory_mb
+        free_disk_gb -= instance.root_gb
+        free_disk_gb -= instance.ephemeral_gb
+        bandwidth -= instance.bandwidth
+        if instance.task_state is not None:
+            work += 1
+    return dict(free_ram_mb=free_ram_mb,
+                free_disk_gb=free_disk_gb,
+                current_workload=work,
+                running_vms=vms,
+                bandwidth=bandwidth)
 
 def _adjust_compute_node_values_for_utilization(context, values, session):
     service_ref = service_get(context, values['service_id'], session=session)
     host = service_ref['host']
-    ram_mb = values['memory_mb']
-    disk_gb = values['local_gb']
-    values.update(_get_host_utilization(context, host, ram_mb, disk_gb))
-
+    if values['memory_mb'] is not None:
+        ram_mb = values['memory_mb']
+    if values['local_gb'] is not None:
+        disk_gb = values['local_gb']
+    if values['bandwidth'] is not None:
+        bandwidth = values['bandwidth']
+    values.update(_get_host_utilization2(context, host, ram_mb, disk_gb, bandwidth))
 
 @require_admin_context
 def compute_node_create(context, values, session=None):

@@ -2182,6 +2182,7 @@ class LibvirtDriver(driver.ComputeDriver):
                'hypervisor_version': self.get_hypervisor_version(),
                'hypervisor_hostname': self.get_hypervisor_hostname(),
                'cpu_info': self.get_cpu_info(),
+               'bandwidth': 100,
                'service_id': service_ref['id'],
                'disk_available_least': self.get_disk_available_least()}
 
